@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C-Bank Smart Optimizer 115kV</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --panel-bg: #ffffff;
+            --border-color: #cbd5e1;
+            --primary: #0f172a;
+            --success: #dcfce7;
+            --success-text: #166534;
+            --danger: #fee2e2;
+            --danger-text: #991b1b;
+            --highlight: #fef08a;
+            --selected: #bae6fd;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary);
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 { text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9em; }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 350px;
+        }
+        
+        .grid-wrapper {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+        .phase-col { flex: 1; }
+        .phase-title { text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
+        
+        .cell-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .cell-label {
+            width: 40px;
+            font-size: 0.85em;
+            color: #475569;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.95em;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        input[type="number"]:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        
+        .is-selected { background-color: var(--selected) !important; border-color: #0284c7 !important; color: #0369a1; font-weight: bold; }
+        
+        .result-box {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+        }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
+        .delta-box {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            border: 1px solid;
+        }
+        .pass { background-color: var(--success); color: var(--success-text); border-color: #86efac; }
+        .fail { background-color: var(--danger); color: var(--danger-text); border-color: #fca5a5; }
+
+        .controls { text-align: center; margin: 20px 0; }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary { background-color: #2563eb; color: white; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3); }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-reset { background-color: #e2e8f0; color: #334155; margin-left: 10px; }
+        .btn-reset:hover { background-color: #cbd5e1; }
+        .btn-add { background-color: #10b981; color: white; margin-top: 10px; font-size: 0.9em; padding: 6px 12px; }
+        .btn-add:hover { background-color: #059669; }
+        
+        .log-panel {
+            margin-top: 20px;
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            min-height: 80px;
+            white-space: pre-line;
+        }
+        
+        /* สไตล์สำหรับ Spare แบ่ง 2 คอลัมน์ */
+        #col-Spares {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px 15px;
+        }
+        .spare-panel input[type="number"] { background-color: var(--highlight); }
+        .spare-panel { flex: 0.4; min-width: 350px; }
+
+        /* กล่องแสดงผลกระแสหลัก */
+        .current-panel {
+            width: 100%; 
+            text-align: center; 
+            background: #f0f9ff; 
+            border: 2px solid #7dd3fc; 
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⚡ C-Bank Smart Optimizer</h1>
+    <div class="subtitle">ระบบคำนวณและปรับสมดุล Capacitor Bank อัตโนมัติ พร้อมวิเคราะห์กระแส CT</div>
+
+    <div class="controls">
+        <button class="btn-primary" onclick="autoBalance()">✨ วิเคราะห์หาวิธีสลับอัตโนมัติ (Auto-Balance)</button>
+        <button class="btn-reset" onclick="resetData()">↺ โหลดข้อมูลเริ่มต้น</button>
+        <p style="font-size: 0.9em; margin-top: 10px; color: #64748b;">
+            💡 <b>ระบบ Manual:</b> คลิกที่ช่องตัวเลข 2 ช่องเพื่อสลับตำแหน่งกันด้วยตัวเอง (ดับเบิลคลิกเพื่อพิมพ์แก้ตัวเลข)
+        </p>
+    </div>
+
+    <div class="container">
+        <div class="panel current-panel" id="panel-current">
+            <h2 style="color: #0369a1; margin-top: 0; font-size: 1.2em;">กระแส Unbalance สุทธิ (Neutral CT Current)</h2>
+            <div id="res-current" style="font-size: 2.8em; font-weight: bold; color: #0f172a; margin: 10px 0;">0.00 mA</div>
+            <div style="font-size: 0.95em; color: #64748b; line-height: 1.6;">
+                คำนวณด้วยสมการ Vector (Phasor Method) อ้างอิงระบบ 115 kV 50Hz<br>
+                <span style="color: #dc2626; font-weight: bold; background: #fee2e2; padding: 2px 8px; border-radius: 4px;">⚠️ ตั้งค่าแจ้งเตือน (Alarm) เมื่อกระแสเกิน 150 mA</span>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-g1">
+            <h2>Group 1</h2>
+            <div class="grid-wrapper">
+                <div class="phase-col" id="col-A1"></div>
+                <div class="phase-col" id="col-B1"></div>
+                <div class="phase-col" id="col-C1"></div>
+            </div>
+            <div class="result-box">
+                <div class="result-row"><span>C_eq A1:</span> <span id="res-A1">0</span></div>
+                <div class="result-row"><span>C_eq B1:</span> <span id="res-B1">0</span></div>
+                <div class="result-row"><span>C_eq C1:</span> <span id="res-C1">0</span></div>
+                <div id="delta-g1" class="delta-box fail">Delta 1: 0 (❌ ไม่ผ่าน)</div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-g2">
+            <h2>Group 2</h2>
+            <div class="grid-wrapper">
+                <div class="phase-col" id="col-A2"></div>
+                <div class="phase-col" id="col-B2"></div>
+                <div class="phase-col" id="col-C2"></div>
+            </div>
+            <div class="result-box">
+                <div class="result-row"><span>C_eq A2:</span> <span id="res-A2">0</span></div>
+                <div class="result-row"><span>C_eq B2:</span> <span id="res-B2">0</span></div>
+                <div class="result-row"><span>C_eq C2:</span> <span id="res-C2">0</span></div>
+                <div id="delta-g2" class="delta-box fail">Delta 2: 0 (❌ ไม่ผ่าน)</div>
+            </div>
+        </div>
+
+        <div class="panel spare-panel">
+            <h2>Spares Inventory</h2>
+            <div id="col-Spares"></div>
+            <div style="text-align: center;">
+                <button class="btn-add" onclick="addSpare()">+ เพิ่มช่อง Spare</button>
+            </div>
+            <div class="log-panel" id="action-log">รอการคำนวณ...</div>
+        </div>
+    </div>
+
+    <script>
+        // ข้อมูลตั้งต้น (เริ่มที่ Spare 5 ช่อง)
+        const initialData = {
+            A1: [26.90, 27.26, 27.13, 27.33, 26.34, 27.31, 27.25, 26.31, 27.24, 27.45],
+            B1: [27.04, 27.12, 27.09, 27.17, 27.20, 27.18, 26.40, 27.23, 27.33, 27.44],
+            C1: [27.06, 27.02, 27.06, 27.13, 27.21, 27.43, 27.22, 27.28, 27.25, 26.48],
+            A2: [27.11, 27.24, 27.15, 27.15, 27.21, 27.16, 27.34, 27.22, 26.56, 27.24],
+            B2: [27.05, 27.08, 27.16, 27.30, 27.10, 27.16, 27.03, 26.12, 27.31, 27.23],
+            C2: [27.09, 27.27, 27.06, 27.14, 27.18, 27.19, 27.34, 27.34, 27.35, 27.43],
+            Spares: [27.41, 26.94, 27.30, 27.61, 25.45]
+        };
+
+        let currentData = {};
+        let selectedInput = null;
+
+        function resetData() {
+            currentData = JSON.parse(JSON.stringify(initialData));
+            document.getElementById('action-log').innerText = "โหลดข้อมูลเริ่มต้นเรียบร้อยแล้ว";
+            selectedInput = null;
+            buildUI();
+        }
+
+        // ฟังก์ชันสำหรับเพิ่มช่อง Spare แบบยืดหยุ่น
+        function addSpare() {
+            currentData.Spares.push(0.00);
+            buildUI();
+            document.getElementById('action-log').innerText = `✅ เพิ่มช่อง Spare ที่ ${currentData.Spares.length} เรียบร้อยแล้ว`;
+        }
+
+        function buildUI() {
+            const keys = ['A1', 'B1', 'C1', 'A2', 'B2', 'C2', 'Spares'];
+            keys.forEach(phase => {
+                const col = document.getElementById(`col-${phase}`);
+                col.innerHTML = phase === 'Spares' ? '' : `<div class="phase-title">${phase}</div>`;
+                
+                currentData[phase].forEach((val, idx) => {
+                    let label = phase === 'Spares' ? `Sp.${idx+1}` : `${phase}/${idx+1}`;
+                    col.innerHTML += `
+                        <div class="cell-row">
+                            <div class="cell-label">${label}</div>
+                            <input type="number" step="0.01" value="${val.toFixed(2)}" 
+                                   data-phase="${phase}" data-idx="${idx}" 
+                                   onchange="updateValue(this)" onclick="handleCellClick(this)" readonly="readonly">
+                        </div>
+                    `;
+                });
+                
+                const inputs = col.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.ondblclick = function() { this.removeAttribute('readonly'); }
+                    input.onblur = function() { this.setAttribute('readonly', 'readonly'); }
+                });
+            });
+            updateCalculations();
+        }
+
+        function updateValue(input) {
+            const phase = input.dataset.phase;
+            const idx = input.dataset.idx;
+            currentData[phase][idx] = parseFloat(input.value) || 0;
+            updateCalculations();
+        }
+
+        function handleCellClick(input) {
+            if (!selectedInput) {
+                selectedInput = input;
+                input.classList.add('is-selected');
+            } else {
+                if (selectedInput === input) {
+                    input.classList.remove('is-selected');
+                    selectedInput = null;
+                    return;
+                }
+                
+                const phase1 = selectedInput.dataset.phase;
+                const idx1 = selectedInput.dataset.idx;
+                const phase2 = input.dataset.phase;
+                const idx2 = input.dataset.idx;
+                
+                let temp = currentData[phase1][idx1];
+                currentData[phase1][idx1] = currentData[phase2][idx2];
+                currentData[phase2][idx2] = temp;
+
+                let label1 = phase1 === 'Spares' ? `Sp.${parseInt(idx1)+1}` : `${phase1}/${parseInt(idx1)+1}`;
+                let label2 = phase2 === 'Spares' ? `Sp.${parseInt(idx2)+1}` : `${phase2}/${parseInt(idx2)+1}`;
+
+                document.getElementById('action-log').innerText = `🔄 สลับ (Manual):\n${label1} (${temp.toFixed(2)}) ↔ ${label2} (${currentData[phase1][idx1].toFixed(2)})`;
+                
+                selectedInput.classList.remove('is-selected');
+                selectedInput = null;
+                buildUI(); 
+            }
+        }
+
+        function calcCeq(arr) {
+            let sumReciprocal = 0;
+            for(let i=0; i<arr.length; i++){
+                if(arr[i] === 0) continue; // ป้องกันหาร 0
+                sumReciprocal += (1 / arr[i]);
+            }
+            return sumReciprocal === 0 ? 0 : 1 / sumReciprocal;
+        }
+
+        function updateCalculations() {
+            const groups = {
+                1: ['A1', 'B1', 'C1'],
+                2: ['A2', 'B2', 'C2']
+            };
+
+            for (let g = 1; g <= 2; g++) {
+                let ceqs = [];
+                groups[g].forEach(phase => {
+                    let ceq = calcCeq(currentData[phase]);
+                    ceqs.push(ceq);
+                    document.getElementById(`res-${phase}`).innerText = ceq.toFixed(8);
+                });
+
+                let maxCeq = Math.max(...ceqs);
+                let minCeq = Math.min(...ceqs);
+                let delta = maxCeq - minCeq;
+                
+                const deltaBox = document.getElementById(`delta-g${g}`);
+                if (delta <= 0.00100001) { 
+                    deltaBox.className = 'delta-box pass';
+                    deltaBox.innerText = `Delta ${g}: ${delta.toFixed(8)} (✅ ผ่าน)`;
+                } else {
+                    deltaBox.className = 'delta-box fail';
+                    deltaBox.innerText = `Delta ${g}: ${delta.toFixed(8)} (❌ ไม่ผ่าน)`;
+                }
+            }
+            
+            // เรียกฟังก์ชันคำนวณกระแส CT
+            calculateCTCurrent();
+        }
+
+        // ฟังก์ชันคำนวณกระแส I_CT ด้วยสมการ Phasor Vector
+        function calculateCTCurrent() {
+            // ค่าคงที่ของระบบ
+            const V_ph = 115000 / Math.sqrt(3);
+            const w = 2 * Math.PI * 50;
+            const K_mA = V_ph * w * Math.pow(10, -3); // คูณ 10^-6 แปลงไมโครฟารัด แล้วคูณ 1000 แปลงเป็น mA สุทธิ = 10^-3
+
+            // ดึงค่า C_eq ของแต่ละเฟส
+            let cA1 = calcCeq(currentData['A1']); let cB1 = calcCeq(currentData['B1']); let cC1 = calcCeq(currentData['C1']);
+            let cA2 = calcCeq(currentData['A2']); let cB2 = calcCeq(currentData['B2']); let cC2 = calcCeq(currentData['C2']);
+
+            // กระแสแต่ละเฟส I = V * w * C
+            let iA1 = K_mA * cA1, iB1 = K_mA * cB1, iC1 = K_mA * cC1;
+            let iA2 = K_mA * cA2, iB2 = K_mA * cB2, iC2 = K_mA * cC2;
+
+            // แตกเวกเตอร์ Group 1
+            let X1 = iA1 - (0.5 * iB1) - (0.5 * iC1);
+            let Y1 = ((Math.sqrt(3)/2) * iC1) - ((Math.sqrt(3)/2) * iB1);
+
+            // แตกเวกเตอร์ Group 2
+            let X2 = iA2 - (0.5 * iB2) - (0.5 * iC2);
+            let Y2 = ((Math.sqrt(3)/2) * iC2) - ((Math.sqrt(3)/2) * iB2);
+
+            // คำนวณกระแสสุทธิที่ไหลผ่าน CT (ผลต่างเวกเตอร์หาร 2)
+            let I_CT = (Math.sqrt(Math.pow(X1 - X2, 2) + Math.pow(Y1 - Y2, 2))) / 2;
+
+            const currentBox = document.getElementById('panel-current');
+            const currentText = document.getElementById('res-current');
+            
+            currentText.innerText = I_CT.toFixed(2) + " mA";
+
+            // เปลี่ยนสีกล่องตามระดับความรุนแรงของกระแส (เกณฑ์แจ้งเตือน 150 mA)
+            if(I_CT > 150) {
+                currentBox.style.backgroundColor = '#fee2e2';
+                currentBox.style.borderColor = '#fca5a5';
+                currentText.style.color = '#991b1b';
+            } else {
+                currentBox.style.backgroundColor = '#dcfce7';
+                currentBox.style.borderColor = '#86efac';
+                currentText.style.color = '#166534';
+            }
+        }
+
+        function autoBalance() {
+            let logText = "🚀 เริ่มการวิเคราะห์หาจุดสลับ...\n";
+            document.getElementById('action-log').innerText = "กำลังประมวลผล...";
+
+            let cells = [];
+            for(let phase in currentData) {
+                currentData[phase].forEach((val, idx) => {
+                    cells.push({ phase, idx, val });
+                });
+            }
+
+            function getScore(simData) {
+                let ceqA1 = calcCeq(simData['A1']); let ceqB1 = calcCeq(simData['B1']); let ceqC1 = calcCeq(simData['C1']);
+                let ceqA2 = calcCeq(simData['A2']); let ceqB2 = calcCeq(simData['B2']); let ceqC2 = calcCeq(simData['C2']);
+                
+                let d1 = Math.max(ceqA1, ceqB1, ceqC1) - Math.min(ceqA1, ceqB1, ceqC1);
+                let d2 = Math.max(ceqA2, ceqB2, ceqC2) - Math.min(ceqA2, ceqB2, ceqC2);
+                
+                let p1 = d1 > 0.001 ? d1 * 100 : d1;
+                let p2 = d2 > 0.001 ? d2 * 100 : d2;
+                return p1 + p2;
+            }
+
+            for(let step = 1; step <= 3; step++) {
+                let bestScore = getScore(currentData);
+                let bestSwap = null;
+
+                for(let i=0; i<cells.length; i++) {
+                    for(let j=i+1; j<cells.length; j++) {
+                        let phaseI = cells[i].phase, idxI = cells[i].idx;
+                        let phaseJ = cells[j].phase, idxJ = cells[j].idx;
+
+                        let temp = currentData[phaseI][idxI];
+                        let target = currentData[phaseJ][idxJ];
+
+                        // ป้องกันการนำช่อง Spare ที่ว่างเปล่า (ค่า = 0) เข้าไปสลับในเฟสหลัก
+                        if ((phaseI !== 'Spares' && target === 0) || (phaseJ !== 'Spares' && temp === 0)) continue;
+                        if (temp === 0 && target === 0) continue;
+
+                        currentData[phaseI][idxI] = target;
+                        currentData[phaseJ][idxJ] = temp;
+
+                        let currentScore = getScore(currentData);
+                        if (currentScore < bestScore) {
+                            bestScore = currentScore;
+                            bestSwap = { i, j };
+                        }
+
+                        currentData[phaseJ][idxJ] = target;
+                        currentData[phaseI][idxI] = temp;
+                    }
+                }
+
+                if (bestSwap) {
+                    let cell1 = cells[bestSwap.i];
+                    let cell2 = cells[bestSwap.j];
+                    
+                    let tempVal = currentData[cell1.phase][cell1.idx];
+                    currentData[cell1.phase][cell1.idx] = currentData[cell2.phase][cell2.idx];
+                    currentData[cell2.phase][cell2.idx] = tempVal;
+                    
+                    cells[bestSwap.i].val = currentData[cell1.phase][cell1.idx];
+                    cells[bestSwap.j].val = currentData[cell2.phase][cell2.idx];
+
+                    let l1 = cell1.phase === 'Spares' ? `Sp.${cell1.idx+1}` : `${cell1.phase}/${cell1.idx+1}`;
+                    let l2 = cell2.phase === 'Spares' ? `Sp.${cell2.idx+1}` : `${cell2.phase}/${cell2.idx+1}`;
+                    logText += `[ครั้งที่ ${step}] สลับ ${l1} กับ ${l2}\n`;
+                } else {
+                    if (step === 1) logText += "✅ ระบบสมดุลอยู่แล้ว ไม่ต้องสลับ\n";
+                    break;
+                }
+
+                let d1 = Math.max(calcCeq(currentData['A1']), calcCeq(currentData['B1']), calcCeq(currentData['C1'])) - Math.min(calcCeq(currentData['A1']), calcCeq(currentData['B1']), calcCeq(currentData['C1']));
+                let d2 = Math.max(calcCeq(currentData['A2']), calcCeq(currentData['B2']), calcCeq(currentData['C2'])) - Math.min(calcCeq(currentData['A2']), calcCeq(currentData['B2']), calcCeq(currentData['C2']));
+                
+                if(d1 <= 0.001 && d2 <= 0.001) {
+                    logText += "🎉 สำเร็จ! ค่า Delta ผ่านเกณฑ์ที่กำหนดแล้ว\n";
+                    break;
+                }
+            }
+
+            document.getElementById('action-log').innerText = logText;
+            buildUI();
+        }
+
+        resetData();
+
+    </script>
+</body>
+</html>

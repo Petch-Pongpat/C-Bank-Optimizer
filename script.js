@@ -43,10 +43,11 @@ function buildUI() {
         
         currentData[phase].forEach((val, idx) => {
             let label = phase === 'Spares' ? `Sp.${idx+1}` : `${phase}/${idx+1}`;
+            // เพิ่ม inputmode="decimal" เพื่อดึงแป้นตัวเลขบน iPad
             col.innerHTML += `
                 <div class="cell-row">
                     <div class="cell-label">${label}</div>
-                    <input type="number" step="0.01" value="${val.toFixed(2)}" 
+                    <input type="number" step="0.01" inputmode="decimal" value="${val.toFixed(2)}" 
                            data-phase="${phase}" data-idx="${idx}" readonly>
                 </div>
             `;
@@ -55,41 +56,24 @@ function buildUI() {
 
     const inputs = document.querySelectorAll('input[type="number"]');
     inputs.forEach(input => {
-        let lastTap = 0;
-
-        const enableEditMode = () => {
-            input.readOnly = false;
-            input.blur(); 
-            setTimeout(() => {
-                input.focus(); 
-            }, 100);
-        };
-
-        input.ondblclick = function(e) {
-            enableEditMode();
-        };
-
-        input.ontouchend = function(e) {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
-            if (tapLength < 400 && tapLength > 0) {
-                e.preventDefault(); 
-                enableEditMode();
-            }
-            lastTap = currentTime;
-        };
-
+        // เมื่อมีการคลิก (ทำงานได้สมบูรณ์ทั้งบน iPad และ PC)
         input.onclick = function(e) {
-            if (this.readOnly === false) return; 
+            if (this.readOnly === false) return; // ถ้ากำลังพิมพ์แก้เลขอยู่ ไม่ต้องทำอะไร
             handleCellClick(this);
         };
 
+        // เมื่อพิมพ์ค่าเสร็จ
         input.onchange = function() {
             updateValue(this);
         };
 
+        // เมื่อกดพื้นที่ว่างเพื่อเอาคีย์บอร์ดลง ให้ล็อกกลับตามเดิม
         input.onblur = function() {
             this.readOnly = true;
+            this.classList.remove('is-selected');
+            if (selectedInput === this) {
+                selectedInput = null;
+            }
         };
     });
     
@@ -109,17 +93,24 @@ function updateValue(input) {
     updateCalculations();
 }
 
+// ลอจิกการกดปุ่ม (Tap to Select -> Tap again to Edit)
 function handleCellClick(input) {
     if (!selectedInput) {
+        // แตะครั้งแรก -> เลือกสลับ (ขึ้นสีฟ้า)
         selectedInput = input;
         input.classList.add('is-selected');
     } else {
         if (selectedInput === input) {
+            // แตะครั้งที่ 2 ที่ช่องเดิม -> ปลดล็อกเพื่อพิมพ์แก้ไข
             input.classList.remove('is-selected');
             selectedInput = null;
+            
+            input.readOnly = false;
+            input.focus(); // Safari จะยอมให้คีย์บอร์ดเด้งตรงนี้ทันที
             return;
         }
         
+        // แตะครั้งที่ 2 ที่ช่องอื่น -> สลับข้อมูล (Swap)
         const phase1 = selectedInput.dataset.phase;
         const idx1 = selectedInput.dataset.idx;
         const phase2 = input.dataset.phase;

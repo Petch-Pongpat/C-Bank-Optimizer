@@ -22,7 +22,6 @@ function addLog(message) {
     logEl.scrollTop = logEl.scrollHeight;
 }
 
-// ปรับปรุงฟังก์ชันรีเซ็ตให้ล้างและเขียนทับข้อความ Log ทันที
 function resetData() {
     currentData = JSON.parse(JSON.stringify(initialData));
     document.getElementById('action-log').innerText = "✅ โหลดข้อมูลเริ่มต้นเรียบร้อยแล้ว";
@@ -48,47 +47,65 @@ function buildUI() {
                 <div class="cell-row">
                     <div class="cell-label">${label}</div>
                     <input type="number" step="0.01" value="${val.toFixed(2)}" 
-                           data-phase="${phase}" data-idx="${idx}" 
-                           onchange="updateValue(this)" onclick="handleCellClick(this)" readonly="readonly">
+                           data-phase="${phase}" data-idx="${idx}" readonly>
                 </div>
             `;
         });
-        
-        const inputs = col.querySelectorAll('input');
-        inputs.forEach(input => {
-            // 1. สำหรับการใช้เมาส์ดับเบิลคลิกบนคอมพิวเตอร์
-            input.ondblclick = function() { 
-                this.removeAttribute('readonly'); 
-                this.focus();
-            };
-            
-            // 2. สำหรับการเคาะหน้าจอ 2 ครั้ง (Double Tap) บน iPad / iPhone
-            let lastTap = 0;
-            input.addEventListener('touchend', function(e) {
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTap;
-                
-                if (tapLength < 400 && tapLength > 0) {
-                    // ถ้าตรวจพบการเคาะ 2 ครั้งติดกันภายใน 0.4 วินาที ให้ปลดล็อกช่องตัวเลข
-                    this.removeAttribute('readonly');
-                    this.focus(); 
-                }
-                lastTap = currentTime;
-            });
-
-            // 3. เมื่อพิมพ์เสร็จแล้วกดพื้นที่อื่นบนจอ ให้ล็อกช่องกลับมาเป็นโหมดสำหรับเลือกสลับตำแหน่งตามเดิม
-            input.onblur = function() { 
-                this.setAttribute('readonly', 'readonly'); 
-            };
-        });
     });
+
+    const inputs = document.querySelectorAll('input[type="number"]');
+    inputs.forEach(input => {
+        let lastTap = 0;
+
+        const enableEditMode = () => {
+            input.readOnly = false;
+            input.blur(); 
+            setTimeout(() => {
+                input.focus(); 
+            }, 100);
+        };
+
+        input.ondblclick = function(e) {
+            enableEditMode();
+        };
+
+        input.ontouchend = function(e) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 400 && tapLength > 0) {
+                e.preventDefault(); 
+                enableEditMode();
+            }
+            lastTap = currentTime;
+        };
+
+        input.onclick = function(e) {
+            if (this.readOnly === false) return; 
+            handleCellClick(this);
+        };
+
+        input.onchange = function() {
+            updateValue(this);
+        };
+
+        input.onblur = function() {
+            this.readOnly = true;
+        };
+    });
+    
     updateCalculations();
 }
 
 function updateValue(input) {
     const phase = input.dataset.phase;
     const idx = input.dataset.idx;
+    const oldVal = currentData[phase][idx];
     currentData[phase][idx] = parseFloat(input.value) || 0;
+    
+    if (oldVal !== currentData[phase][idx]) {
+        let label = phase === 'Spares' ? `Sp.${parseInt(idx)+1}` : `${phase}/${parseInt(idx)+1}`;
+        addLog(`✏️ พิมพ์แก้ไขค่า: ${label} เปลี่ยนจาก ${oldVal.toFixed(2)} เป็น ${currentData[phase][idx].toFixed(2)}`);
+    }
     updateCalculations();
 }
 
@@ -112,8 +129,8 @@ function handleCellClick(input) {
         currentData[phase1][idx1] = currentData[phase2][idx2];
         currentData[phase2][idx2] = temp;
 
-        let label1 = phase1 === 'Spares' ? `Sp.${idx1+1}` : `${phase1}/${parseInt(idx1)+1}`;
-        let label2 = phase2 === 'Spares' ? `Sp.${idx2+1}` : `${phase2}/${parseInt(idx2)+1}`;
+        let label1 = phase1 === 'Spares' ? `Sp.${parseInt(idx1)+1}` : `${phase1}/${parseInt(idx1)+1}`;
+        let label2 = phase2 === 'Spares' ? `Sp.${parseInt(idx2)+1}` : `${phase2}/${parseInt(idx2)+1}`;
 
         addLog(`🔄 สลับ (Manual):\n${label1} (${temp.toFixed(2)}) ↔ ${label2} (${currentData[phase1][idx1].toFixed(2)})`);
         

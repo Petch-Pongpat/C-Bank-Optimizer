@@ -56,26 +56,86 @@ function buildUI() {
 
     const inputs = document.querySelectorAll('input[type="number"]');
     inputs.forEach(input => {
-        // เมื่อมีการคลิก (ทำงานได้สมบูรณ์ทั้งบน iPad และ PC)
-        input.onclick = function(e) {
-            if (this.readOnly === false) return; // ถ้ากำลังพิมพ์แก้เลขอยู่ ไม่ต้องทำอะไร
-            handleCellClick(this);
-        };
 
-        // เมื่อพิมพ์ค่าเสร็จ
-        input.onchange = function() {
-            updateValue(this);
-        };
+    let clickTimer = null;
+    let touchTimer = null;
+    let lastTouchTime = 0;
 
-        // เมื่อกดพื้นที่ว่างเพื่อเอาคีย์บอร์ดลง ให้ล็อกกลับตามเดิม
-        input.onblur = function() {
-            this.readOnly = true;
-            this.classList.remove('is-selected');
-            if (selectedInput === this) {
-                selectedInput = null;
+    const enableEditMode = () => {
+        input.readOnly = false;
+
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 10);
+    };
+
+    // ===== PC (Mouse) =====
+    input.addEventListener('click', function(e) {
+
+        // Double Click -> Edit
+        if (e.detail === 2) {
+            clearTimeout(clickTimer);
+            enableEditMode();
+            return;
+        }
+
+        // Single Click -> Select for Swap
+        clickTimer = setTimeout(() => {
+            if (input.readOnly) {
+                handleCellClick(input);
             }
-        };
+        }, 250);
     });
+
+    // ===== iPad / Touch =====
+    input.addEventListener('touchend', function(e) {
+
+        const now = Date.now();
+        const diff = now - lastTouchTime;
+
+        // Double Tap
+        if (diff > 0 && diff < 350) {
+
+            clearTimeout(touchTimer);
+            e.preventDefault();
+
+            enableEditMode();
+        }
+        else {
+
+            touchTimer = setTimeout(() => {
+                if (input.readOnly) {
+                    handleCellClick(input);
+                }
+            }, 350);
+        }
+
+        lastTouchTime = now;
+    });
+
+    // ===== Save Value =====
+    input.addEventListener('change', function() {
+        updateValue(this);
+    });
+
+    // ===== Exit Edit Mode =====
+    input.addEventListener('blur', function() {
+        this.readOnly = true;
+
+        const phase = this.dataset.phase;
+        const idx = this.dataset.idx;
+
+        this.value = currentData[phase][idx].toFixed(2);
+    });
+
+    // ===== Enter Key =====
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            this.blur();
+        }
+    });
+});
     
     updateCalculations();
 }

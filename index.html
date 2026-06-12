@@ -8,8 +8,19 @@
 </head>
 <body>
 
-    <h1>⚡ C-Bank Smart Optimizer</h1>
-    <div class="subtitle">ระบบคำนวณและปรับสมดุล Capacitor Bank อัตโนมัติ พร้อมวิเคราะห์กระแส CT</div>
+    <div class="hero-header">
+    <div class="hero-badge">
+        ⚡ C-BANK SMART OPTIMIZER
+    </div>
+
+    <div class="hero-subtitle">
+        ระบบคำนวณและปรับสมดุล Capacitor Bank 115 kV
+    </div>
+
+    <div class="hero-desc">
+        Capacitor Balancing • Ceq Analysis • Neutral CT Current Monitoring
+    </div>
+</div>
 
     <div class="controls">
         <button class="btn-primary" onclick="autoBalance()">✨ วิเคราะห์หาวิธีสลับอัตโนมัติ (Auto-Balance)</button>
@@ -24,7 +35,39 @@
     <div class="container">
         <div class="panel current-panel" id="panel-current">
             <h2 class="current-title">กระแส Unbalance สุทธิ (Neutral CT Current)</h2>
-            <div id="res-current" class="current-value">0.00 mA</div>
+            <div class="current-section">
+
+    <div class="current-card">
+
+        <div class="current-label">
+            Calculated CT Current
+        </div>
+
+        <div id="res-current-calc"
+             class="current-value">
+
+            0.00 mA
+
+        </div>
+
+    </div>
+
+    <div class="current-card">
+
+        <div class="current-label">
+            Measured CT Current
+        </div>
+
+        <div id="res-current-meas"
+             class="current-value">
+
+            0.00 mA
+
+        </div>
+
+    </div>
+
+</div>
             <div class="current-desc">
                 คำนวณด้วยสมการ Vector (Phasor Method) อ้างอิงระบบ 115 kV 50Hz<br>
                 <span class="alarm-toast">⚠️ ตั้งค่าแจ้งเตือน (Alarm) เมื่อกระแสเกิน 150 mA</span>
@@ -39,11 +82,45 @@
                 <div class="phase-col" id="col-C1"></div>
             </div>
             <div class="result-box">
-                <div class="result-row"><span>C_eq A1:</span> <span id="res-A1">0</span></div>
-                <div class="result-row"><span>C_eq B1:</span> <span id="res-B1">0</span></div>
-                <div class="result-row"><span>C_eq C1:</span> <span id="res-C1">0</span></div>
-                <div id="delta-g1" class="delta-box fail">Delta 1: 0 (❌ ไม่ผ่าน)</div>
-            </div>
+
+    <div class="ceq-header">
+        <span>Phase</span>
+        <span>Calculated</span>
+        <span>Measured</span>
+        <span style="text-align: right;">Error (%)</span>
+    </div>
+
+    <div class="ceq-row">
+        <span>A1</span>
+        <span id="res-A1">0</span>
+        <input type="number" id="meas-A1" step="0.00000001">
+        <span id="err-A1" class="err-val">-</span>
+    </div>
+
+    <div class="ceq-row">
+        <span>B1</span>
+        <span id="res-B1">0</span>
+        <input type="number" id="meas-B1" step="0.00000001">
+        <span id="err-B1" class="err-val">-</span>
+    </div>
+
+    <div class="ceq-row">
+        <span>C1</span>
+        <span id="res-C1">0</span>
+        <input type="number" id="meas-C1" step="0.00000001">
+        <span id="err-C1" class="err-val">-</span>
+    </div>
+
+    <div class="delta-container">
+        <div id="delta-calc-g1" class="delta-box fail">
+            Delta Calculated: 0 (❌ ไม่ผ่าน)
+        </div>
+        <div id="delta-meas-g1" class="delta-box pending">
+            Delta Measured: รอระบุค่า
+        </div>
+    </div>
+
+</div>
         </div>
 
         <div class="panel" id="panel-g2">
@@ -54,11 +131,45 @@
                 <div class="phase-col" id="col-C2"></div>
             </div>
             <div class="result-box">
-                <div class="result-row"><span>C_eq A2:</span> <span id="res-A2">0</span></div>
-                <div class="result-row"><span>C_eq B2:</span> <span id="res-B2">0</span></div>
-                <div class="result-row"><span>C_eq C2:</span> <span id="res-C2">0</span></div>
-                <div id="delta-g2" class="delta-box fail">Delta 2: 0 (❌ ไม่ผ่าน)</div>
-            </div>
+
+    <div class="ceq-header">
+        <span>Phase</span>
+        <span>Calculated</span>
+        <span>Measured</span>
+        <span style="text-align: right;">Error (%)</span>
+    </div>
+
+    <div class="ceq-row">
+        <span>A2</span>
+        <span id="res-A2">0</span>
+        <input type="number" id="meas-A2" step="0.00000001">
+        <span id="err-A2" class="err-val">-</span>
+    </div>
+
+    <div class="ceq-row">
+        <span>B2</span>
+        <span id="res-B2">0</span>
+        <input type="number" id="meas-B2" step="0.00000001">
+        <span id="err-B2" class="err-val">-</span>
+    </div>
+
+    <div class="ceq-row">
+        <span>C2</span>
+        <span id="res-C2">0</span>
+        <input type="number" id="meas-C2" step="0.00000001">
+        <span id="err-C2" class="err-val">-</span>
+    </div>
+
+    <div class="delta-container">
+        <div id="delta-calc-g2" class="delta-box fail">
+            Delta Calculated: 0 (❌ ไม่ผ่าน)
+        </div>
+        <div id="delta-meas-g2" class="delta-box pending">
+            Delta Measured: รอระบุค่า
+        </div>
+    </div>
+
+</div>
         </div>
 
         <div class="panel spare-panel">

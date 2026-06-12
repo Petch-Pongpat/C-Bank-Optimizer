@@ -15,7 +15,7 @@ body {
     background-color: var(--bg-color);
     color: var(--primary);
     margin: 0;
-    padding: 20px;
+    padding: 0;
 }
 h1, h2 { text-align: center; margin-bottom: 5px; }
 .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9em; }
@@ -27,7 +27,9 @@ h1, h2 { text-align: center; margin-bottom: 5px; }
     justify-content: center;
     max-width: 1400px;
     margin: 0 auto;
+    padding: 0 20px 20px 20px; /* ✅ เพิ่มความบาลานซ์เว้นระยะรอบข้างคอนเทนเนอร์ */
 }
+
 .panel {
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
@@ -86,7 +88,6 @@ input[type="number"]:not([readonly]) {
 }
 .result-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
 .delta-box {
-    margin-top: 10px;
     padding: 10px;
     border-radius: 6px;
     text-align: center;
@@ -97,7 +98,25 @@ input[type="number"]:not([readonly]) {
 .pass { background-color: var(--success); color: var(--success-text); border-color: #86efac; }
 .fail { background-color: var(--danger); color: var(--danger-text); border-color: #fca5a5; }
 
-.controls { text-align: center; margin: 20px 0; }
+.delta-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+.pending {
+    background-color: #f8fafc;
+    color: #475569;
+    border-color: #cbd5e1;
+}
+
+.controls { 
+    text-align: center; 
+    margin: 20px auto; 
+    max-width: 1400px;
+    padding: 0 20px; /* ✅ เพิ่มระยะเว้นด้านข้างซ้าย-ขวา */
+}
+
 .controls-hint { font-size: 0.9em; margin-top: 10px; color: #64748b; }
 button {
     padding: 10px 20px;
@@ -108,8 +127,16 @@ button {
     cursor: pointer;
     transition: 0.2s;
 }
-.btn-primary { background-color: #2563eb; color: white; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3); }
-.btn-primary:hover { background-color: #1d4ed8; }
+
+.btn-primary { 
+    background-color: #10b981; /* เปลี่ยนเป็นสีเขียว */
+    color: white; 
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3); /* เปลี่ยนสีเงาให้เข้ากับสีเขียว */
+}
+.btn-primary:hover { 
+    background-color: #059669; /* สีเขียวเข้มขึ้นเวลาเอาเมาส์ชี้ */
+}
+
 .btn-reset { background-color: #e2e8f0; color: #334155; margin-left: 10px; }
 .btn-reset:hover { background-color: #cbd5e1; }
 .btn-container { text-align: center; }
@@ -141,8 +168,8 @@ button {
 .current-panel {
     width: 100%; 
     text-align: center; 
-    background: #f0f9ff; 
-    border: 2px solid #7dd3fc; 
+    background: #ffffff; 
+    border: 2px solid #dae1ea; 
     margin-bottom: 20px;
     padding: 20px;
 }
@@ -235,4 +262,125 @@ button {
     flex:1;
     background:#2563eb;
     color:white;
+}
+
+.hero-header {
+    text-align: center;
+    padding: 30px 20px; /* เพิ่มพื้นที่แนวตั้งให้ดูโปร่งและมีมิติ */
+    background: linear-gradient(
+        135deg,
+        #1d4ed8,
+        #2563eb,
+        #3b82f6
+    );
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* เพิ่มเงาด้านล่างแผง Header */
+    margin-bottom: 25px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.hero-badge {
+    display: block;
+    font-size: 2.3rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin: 0;
+    padding: 0;
+    background: none; /* ✅ เอาพื้นหลังก้อนเดิมออก */
+    box-shadow: none; /* ✅ เอาเงาเดิมออก */
+    border-radius: 0;  /* ✅ เอาความโค้งมนออก */
+}
+
+.hero-subtitle {
+    margin-top: 10px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #f1f5f9; /* ปรับสีตัวหนังสือให้อ่านง่ายและเด่นชัดขึ้นบนพื้นหลังเข้ม */
+}
+
+.hero-desc {
+    margin-top: 6px;
+    color: #bfdbfe; /* ใช้สีฟ้าอ่อนเพื่อให้ดูนุ่มนวลและแยกเลเยอร์สายตาได้ดี */
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.ceq-header,
+.ceq-row{
+    display:grid;
+    grid-template-columns:
+        50px   /* Phase */
+        1fr    /* Calculated */
+        1fr    /* Measured */
+        70px;  /* Error (%) */
+    gap:10px;
+    align-items:center;
+    margin-bottom:6px;
+}
+
+/* เพิ่มคลาสสำหรับจัดสไตล์ตัวเลข Error */
+.err-val {
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+.text-pass { color: #15803d; } /* สีเขียว (ต่ำกว่า 5%) */
+.text-fail { color: #dc2626; } /* สีแดง (เกิน 5%) */
+
+.ceq-header{
+    font-weight:bold;
+    border-bottom:2px solid #cbd5e1;
+    padding-bottom:6px;
+    margin-bottom:10px;
+}
+
+.ceq-row span{
+    font-size:0.9rem;
+}
+
+.ceq-row input{
+    width:100%;
+}
+
+.current-section{
+    display:flex;
+    gap:20px;
+    justify-content:center;
+    flex-wrap:wrap;
+}
+
+.current-card{
+    min-width:280px;
+
+    padding:15px;
+
+    border-radius:12px;
+
+    background:white;
+
+    border:2px solid #cbd5e1;
+}
+
+.current-label{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.current-card .current-value{
+    font-size:2rem;
+}
+
+/* ปรับแต่งช่อง Measured ให้เป็นสีเทาเวลารอรับค่า */
+.ceq-row input[type="number"]:not([readonly]) {
+    background-color: #f1f5f9 !important; /* พื้นหลังสีเทาอ่อน (Pending) */
+    border-color: #cbd5e1 !important;     /* เส้นขอบสีเทา */
+    color: #0f172a !important;            /* สีตัวเลข */
+}
+
+/* เวลาคลิกเข้าไปพิมพ์ (Focus) ให้พื้นหลังสว่างขึ้นเพื่อบอกว่ากำลังพิมพ์อยู่ */
+.ceq-row input[type="number"]:not([readonly]):focus {
+    background-color: #ffffff !important; /* เปลี่ยนเป็นสีขาว */
+    border-color: #3b82f6 !important;     /* เส้นขอบสีฟ้า */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }

@@ -11,6 +11,7 @@ const initialData = {
 let currentData = {};
 let selectedInput = null;
 let editingInput = null;
+let totalAutoSteps = 0; // ✅ เพิ่มตัวแปรนี้เพื่อจำจำนวนครั้งการสลับ
 
 function addLog(message) {
     const logEl = document.getElementById('action-log');
@@ -27,6 +28,7 @@ function resetData() {
     currentData = JSON.parse(JSON.stringify(initialData));
     document.getElementById('action-log').innerText = "✅ โหลดข้อมูลเริ่มต้นเรียบร้อยแล้ว";
     selectedInput = null;
+    totalAutoSteps = 0; // ✅ รีเซ็ตตัวนับเมื่อโหลดข้อมูลใหม่
     buildUI();
 }
 
@@ -107,7 +109,7 @@ function buildUI() {
         });
     });
 
-    const inputs = document.querySelectorAll('input[type="number"]');
+    const inputs = document.querySelectorAll('input[data-phase]');
     inputs.forEach(input => {
 
     let clickTimer = null;
@@ -236,62 +238,186 @@ function updateCalculations() {
     };
 
     for (let g = 1; g <= 2; g++) {
-        let ceqs = [];
+        let ceqsCalc = [];
+        let ceqsMeas = [];
+        let validMeas = true;
+
         groups[g].forEach(phase => {
+            // ค่าจากการคำนวณ (Calculated)
             let ceq = calcCeq(currentData[phase]);
-            ceqs.push(ceq);
+            ceqsCalc.push(ceq);
             document.getElementById(`res-${phase}`).innerText = ceq.toFixed(8);
+
+            // ค่าจากการวัดจริง (Measured)
+            let measInput = document.getElementById(`meas-${phase}`);
+            let errSpan = document.getElementById(`err-${phase}`); // กล่องแสดง Error
+            let mVal = parseFloat(measInput?.value);
+            
+            if (isNaN(mVal)) {
+                validMeas = false;
+                if (errSpan) {
+                    errSpan.innerText = "-";
+                    errSpan.className = "err-val"; // รีเซ็ตสีกลับเป็นปกติ
+                }
+            } else {
+                ceqsMeas.push(mVal);
+                if (errSpan) {
+                    // คำนวณเปอร์เซ็นต์ Error: |Calc - Meas| / Calc * 100
+                    let errorPct = Math.abs((ceq - mVal) / ceq) * 100;
+                    errSpan.innerText = errorPct.toFixed(2) + "%";
+                    
+                    // เปลี่ยนสีตามเงื่อนไข
+                    if (errorPct < 5) {
+                        errSpan.className = "err-val text-pass"; // ผ่าน (เขียว)
+                    } else {
+                        errSpan.className = "err-val text-fail"; // ไม่ผ่าน (แดง)
+                    }
+                }
+            }
         });
 
-        let maxCeq = Math.max(...ceqs);
-        let minCeq = Math.min(...ceqs);
-        let delta = maxCeq - minCeq;
+        // --- อัปเดตกล่อง Delta Calculated ---
+        let maxCeqCalc = Math.max(...ceqsCalc);
+        let minCeqCalc = Math.min(...ceqsCalc);
+        let deltaCalc = maxCeqCalc - minCeqCalc;
         
-        const deltaBox = document.getElementById(`delta-g${g}`);
-        if (delta <= 0.00100001) { 
-            deltaBox.className = 'delta-box pass';
-            deltaBox.innerText = `Delta ${g}: ${delta.toFixed(8)} (✅ ผ่าน)`;
+        const deltaCalcBox = document.getElementById(`delta-calc-g${g}`);
+        if (deltaCalc <= 0.00100001) { 
+            deltaCalcBox.className = 'delta-box pass';
+            deltaCalcBox.innerText = `Delta Calculated ${g}: ${deltaCalc.toFixed(8)} (✅ ผ่าน)`;
         } else {
-            deltaBox.className = 'delta-box fail';
-            deltaBox.innerText = `Delta ${g}: ${delta.toFixed(8)} (❌ ไม่ผ่าน)`;
+            deltaCalcBox.className = 'delta-box fail';
+            deltaCalcBox.innerText = `Delta Calculated ${g}: ${deltaCalc.toFixed(8)} (❌ ไม่ผ่าน)`;
+        }
+
+        // --- อัปเดตกล่อง Delta Measured ---
+        const deltaMeasBox = document.getElementById(`delta-meas-g${g}`);
+        if (validMeas) {
+            let maxCeqMeas = Math.max(...ceqsMeas);
+            let minCeqMeas = Math.min(...ceqsMeas);
+            let deltaMeas = maxCeqMeas - minCeqMeas;
+
+            if (deltaMeas <= 0.00100001) {
+                deltaMeasBox.className = 'delta-box pass';
+                deltaMeasBox.innerText = `Delta Measured ${g}: ${deltaMeas.toFixed(8)} (✅ ผ่าน)`;
+            } else {
+                deltaMeasBox.className = 'delta-box fail';
+                deltaMeasBox.innerText = `Delta Measured ${g}: ${deltaMeas.toFixed(8)} (❌ ไม่ผ่าน)`;
+            }
+        } else {
+            // กรณีที่ยังกรอกข้อมูลไม่ครบ
+            deltaMeasBox.className = 'delta-box pending';
+            deltaMeasBox.innerText = `Delta Measured ${g}: รอระบุค่า (Pending)`;
         }
     }
     
     calculateCTCurrent();
 }
 
+function calculateICT(
+    cA1,cB1,cC1,
+    cA2,cB2,cC2
+){
+    const V_ph =
+        115000 / Math.sqrt(3);
+
+    const w =
+        2 * Math.PI * 50;
+
+    const K_mA =
+        V_ph * w * Math.pow(10,-3);
+
+    let iA1 = K_mA * cA1;
+    let iB1 = K_mA * cB1;
+    let iC1 = K_mA * cC1;
+
+    let iA2 = K_mA * cA2;
+    let iB2 = K_mA * cB2;
+    let iC2 = K_mA * cC2;
+
+    let X1 =
+        iA1 -
+        0.5*iB1 -
+        0.5*iC1;
+
+    let Y1 =
+        (Math.sqrt(3)/2)*iC1 -
+        (Math.sqrt(3)/2)*iB1;
+
+    let X2 =
+        iA2 -
+        0.5*iB2 -
+        0.5*iC2;
+
+    let Y2 =
+        (Math.sqrt(3)/2)*iC2 -
+        (Math.sqrt(3)/2)*iB2;
+
+    return (
+        Math.sqrt(
+            Math.pow(X1-X2,2)+
+            Math.pow(Y1-Y2,2)
+        )
+    )/2;
+}
+
 function calculateCTCurrent() {
-    const V_ph = 115000 / Math.sqrt(3);
-    const w = 2 * Math.PI * 50;
-    const K_mA = V_ph * w * Math.pow(10, -3);
+    // ===== Calculated Ceq =====
+    let ICT_calc = calculateICT(
+        calcCeq(currentData['A1']), calcCeq(currentData['B1']), calcCeq(currentData['C1']),
+        calcCeq(currentData['A2']), calcCeq(currentData['B2']), calcCeq(currentData['C2'])
+    );
 
-    let cA1 = calcCeq(currentData['A1']); let cB1 = calcCeq(currentData['B1']); let cC1 = calcCeq(currentData['C1']);
-    let cA2 = calcCeq(currentData['A2']); let cB2 = calcCeq(currentData['B2']); let cC2 = calcCeq(currentData['C2']);
+    // ===== Measured Ceq =====
+    let mA1 = parseFloat(document.getElementById("meas-A1")?.value);
+    let mB1 = parseFloat(document.getElementById("meas-B1")?.value);
+    let mC1 = parseFloat(document.getElementById("meas-C1")?.value);
+    let mA2 = parseFloat(document.getElementById("meas-A2")?.value);
+    let mB2 = parseFloat(document.getElementById("meas-B2")?.value);
+    let mC2 = parseFloat(document.getElementById("meas-C2")?.value);
 
-    let iA1 = K_mA * cA1, iB1 = K_mA * cB1, iC1 = K_mA * cC1;
-    let iA2 = K_mA * cA2, iB2 = K_mA * cB2, iC2 = K_mA * cC2;
+    let ICT_meas = 0;
+    let hasMeas = !isNaN(mA1) && !isNaN(mB1) && !isNaN(mC1) && !isNaN(mA2) && !isNaN(mB2) && !isNaN(mC2);
+    if(hasMeas){
+        ICT_meas = calculateICT(mA1,mB1,mC1, mA2,mB2,mC2);
+    }
 
-    let X1 = iA1 - (0.5 * iB1) - (0.5 * iC1);
-    let Y1 = ((Math.sqrt(3)/2) * iC1) - ((Math.sqrt(3)/2) * iB1);
-
-    let X2 = iA2 - (0.5 * iB2) - (0.5 * iC2);
-    let Y2 = ((Math.sqrt(3)/2) * iC2) - ((Math.sqrt(3)/2) * iB2);
-
-    let I_CT = (Math.sqrt(Math.pow(X1 - X2, 2) + Math.pow(Y1 - Y2, 2))) / 2;
-
-    const currentBox = document.getElementById('panel-current');
-    const currentText = document.getElementById('res-current');
+    // --- 1. อัปเดตและเปลี่ยนสีกล่อง Calculated CT Current ---
+    const calcEl = document.getElementById("res-current-calc");
+    const calcCard = calcEl.parentElement; // เข้าถึงตัวกล่องรอบนอก
+    calcEl.innerText = ICT_calc.toFixed(2) + " mA";
     
-    currentText.innerText = I_CT.toFixed(2) + " mA";
-
-    if(I_CT > 150) {
-        currentBox.style.backgroundColor = '#fee2e2';
-        currentBox.style.borderColor = '#fca5a5';
-        currentText.style.color = '#991b1b';
+    if (ICT_calc > 150) {
+        calcCard.style.backgroundColor = "#fee2e2"; // พื้นหลังแดงอ่อน
+        calcCard.style.borderColor = "#fca5a5";     // เส้นขอบแดง
+        calcEl.style.color = "#b91c1c";             // ตัวหนังสือแดงเข้ม
     } else {
-        currentBox.style.backgroundColor = '#dcfce7';
-        currentBox.style.borderColor = '#86efac';
-        currentText.style.color = '#166534';
+        calcCard.style.backgroundColor = "#d1fae5"; // พื้นหลังเขียวอ่อน
+        calcCard.style.borderColor = "#86efac";     // เส้นขอบเขียว
+        calcEl.style.color = "#15803d";             // ตัวหนังสือเขียวเข้ม
+    }
+
+    // --- 2. อัปเดตและเปลี่ยนสีกล่อง Measured CT Current ---
+    const measEl = document.getElementById("res-current-meas");
+    const measCard = measEl.parentElement; // เข้าถึงตัวกล่องรอบนอก
+    
+    if (hasMeas) {
+        measEl.innerText = ICT_meas.toFixed(2) + " mA";
+        if (ICT_meas > 150) {
+            measCard.style.backgroundColor = "#fee2e2"; // พื้นหลังแดงอ่อน
+            measCard.style.borderColor = "#fca5a5";     // เส้นขอบแดง
+            measEl.style.color = "#b91c1c";             // ตัวหนังสือแดงเข้ม
+        } else {
+            measCard.style.backgroundColor = "#d1fae5"; // พื้นหลังเขียวอ่อน
+            measCard.style.borderColor = "#86efac";     // เส้นขอบเขียว
+            measEl.style.color = "#15803d";             // ตัวหนังสือเขียวเข้ม
+        }
+    } else {
+        // กรณีที่ยังกรอกข้อมูลฝั่ง Measured ไม่ครบ (Pending)
+        measEl.innerText = "0.00 mA";
+        measCard.style.backgroundColor = "#f8fafc"; // พื้นหลังสีเทาอ่อนชั่วคราว
+        measCard.style.borderColor = "#cbd5e1";     // ขอบเทา
+        measEl.style.color = "#475569";             // ตัวหนังสือสีเทาเข้ม
     }
 }
 
@@ -359,7 +485,10 @@ function autoBalance() {
 
             let l1 = cell1.phase === 'Spares' ? `Sp.${cell1.idx+1}` : `${cell1.phase}/${cell1.idx+1}`;
             let l2 = cell2.phase === 'Spares' ? `Sp.${cell2.idx+1}` : `${cell2.phase}/${cell2.idx+1}`;
-            tempLog += `[ครั้งที่ ${step}] สลับ ${l1} กับ ${l2}\n`;
+            
+            // ✅ บวกตัวเลขสะสมเพิ่มขึ้น 1 ทุกครั้งที่มีการสลับ
+            totalAutoSteps++; 
+            tempLog += `[ครั้งที่ ${totalAutoSteps}] สลับ ${l1} กับ ${l2}\n`;
         } else {
             if (step === 1) tempLog += "✅ ระบบสมดุลอยู่แล้ว ไม่ต้องสลับ\n";
             break;
@@ -404,5 +533,29 @@ document
             }
         }
     );
+
+[
+ 'meas-A1', 'meas-B1', 'meas-C1',
+ 'meas-A2', 'meas-B2', 'meas-C2'
+].forEach(id => {
+    const inputEl = document.getElementById(id);
+    
+    if (inputEl) {
+        // 1. คำนวณค่า Delta และ CT Current แบบ Real-time ขณะพิมพ์
+        inputEl.addEventListener("input", updateCalculations);
+
+        // 2. บันทึกประวัติลง Log เมื่อพิมพ์เสร็จแล้ว (คลิกที่อื่น หรือ กด Enter)
+        inputEl.addEventListener("change", function() {
+            const phase = id.replace('meas-', ''); // ดึงแค่ชื่อเฟส (A1, B1, ...)
+            const val = this.value;
+            
+            if (val !== "") {
+                addLog(`📝 ระบุค่า Measured [${phase}]: ${val}`);
+            } else {
+                addLog(`🗑️ ลบค่า Measured [${phase}]`);
+            }
+        });
+    }
+});
 
 resetData();

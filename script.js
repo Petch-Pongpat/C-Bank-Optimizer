@@ -10,6 +10,7 @@ const initialData = {
 
 let currentData = {};
 let selectedInput = null;
+let editingInput = null;
 
 function addLog(message) {
     const logEl = document.getElementById('action-log');
@@ -35,6 +36,58 @@ function addSpare() {
     addLog(`➕ เพิ่มช่อง Spare ช่องที่ ${currentData.Spares.length} เรียบร้อยแล้ว`);
 }
 
+function openEditModal(input){
+
+    editingInput = input;
+
+    const modal = document.getElementById("editModal");
+    const valueBox = document.getElementById("modalValue");
+
+    valueBox.value = input.value;
+
+    modal.classList.add("show");
+
+    setTimeout(() => {
+        valueBox.focus();
+        valueBox.select();
+    }, 100);
+}
+
+function closeEditModal(){
+
+    document
+        .getElementById("editModal")
+        .classList
+        .remove("show");
+
+    editingInput = null;
+}
+
+function saveEditModal(){
+
+    if(!editingInput) return;
+
+    const valueBox =
+        document.getElementById("modalValue");
+
+    const num =
+        parseFloat(valueBox.value);
+
+    if(isNaN(num)){
+
+        alert("กรุณากรอกตัวเลข");
+
+        return;
+    }
+
+    editingInput.value =
+        num.toFixed(2);
+
+    updateValue(editingInput);
+
+    closeEditModal();
+}
+
 function buildUI() {
     const keys = ['A1', 'B1', 'C1', 'A2', 'B2', 'C2', 'Spares'];
     keys.forEach(phase => {
@@ -58,83 +111,59 @@ function buildUI() {
     inputs.forEach(input => {
 
     let clickTimer = null;
-    let touchTimer = null;
     let lastTouchTime = 0;
 
-    const enableEditMode = () => {
-        input.readOnly = false;
+    // ===== PC =====
 
-        setTimeout(() => {
-            input.focus();
-            input.select();
-        }, 10);
-    };
+    input.addEventListener("click", function(e){
 
-    // ===== PC (Mouse) =====
-    input.addEventListener('click', function(e) {
+        if(e.detail === 2){
 
-        // Double Click -> Edit
-        if (e.detail === 2) {
             clearTimeout(clickTimer);
-            enableEditMode();
+
+            openEditModal(input);
+
             return;
         }
 
-        // Single Click -> Select for Swap
         clickTimer = setTimeout(() => {
-            if (input.readOnly) {
-                handleCellClick(input);
-            }
+
+            handleCellClick(input);
+
         }, 250);
     });
 
-    // ===== iPad / Touch =====
-    input.addEventListener('touchend', function(e) {
+    // ===== Touch =====
 
-        const now = Date.now();
-        const diff = now - lastTouchTime;
+    input.addEventListener(
+        "touchend",
+        function(e){
 
-        // Double Tap
-        if (diff > 0 && diff < 350) {
+            const now =
+                Date.now();
 
-            clearTimeout(touchTimer);
-            e.preventDefault();
+            const diff =
+                now - lastTouchTime;
 
-            enableEditMode();
+            if(diff < 350){
+
+                e.preventDefault();
+
+                openEditModal(input);
+
+            }
+
+            lastTouchTime = now;
         }
-        else {
+    );
 
-            touchTimer = setTimeout(() => {
-                if (input.readOnly) {
-                    handleCellClick(input);
-                }
-            }, 350);
+    input.addEventListener(
+        "change",
+        function(){
+
+            updateValue(this);
         }
-
-        lastTouchTime = now;
-    });
-
-    // ===== Save Value =====
-    input.addEventListener('change', function() {
-        updateValue(this);
-    });
-
-    // ===== Exit Edit Mode =====
-    input.addEventListener('blur', function() {
-        this.readOnly = true;
-
-        const phase = this.dataset.phase;
-        const idx = this.dataset.idx;
-
-        this.value = currentData[phase][idx].toFixed(2);
-    });
-
-    // ===== Enter Key =====
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            this.blur();
-        }
-    });
+    );
 });
     
     updateCalculations();
@@ -348,5 +377,32 @@ function autoBalance() {
     addLog(tempLog.trim());
     buildUI();
 }
+
+document
+    .getElementById("btnSave")
+    .addEventListener(
+        "click",
+        saveEditModal
+    );
+
+document
+    .getElementById("btnCancel")
+    .addEventListener(
+        "click",
+        closeEditModal
+    );
+
+document
+    .getElementById("modalValue")
+    .addEventListener(
+        "keydown",
+        function(e){
+
+            if(e.key === "Enter"){
+
+                saveEditModal();
+            }
+        }
+    );
 
 resetData();

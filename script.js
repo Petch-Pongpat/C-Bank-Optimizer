@@ -507,6 +507,28 @@ function autoBalance() {
     buildUI();
 }
 
+function deselectCurrent() {
+    if (selectedInput) {
+        selectedInput.classList.remove('is-selected');
+        selectedInput = null;
+    }
+}
+
+// กด Escape = ยกเลิกการเลือก
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        deselectCurrent();
+        closeEditModal();
+    }
+});
+
+// คลิกที่ว่าง (นอก input[data-phase]) = ยกเลิกการเลือก
+document.addEventListener('click', function(e) {
+    if (selectedInput && !e.target.matches('input[data-phase]')) {
+        deselectCurrent();
+    }
+});
+
 document
     .getElementById("btnSave")
     .addEventListener(

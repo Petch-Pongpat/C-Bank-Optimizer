@@ -279,12 +279,21 @@ input[type="number"][readonly] {
     cursor: pointer;
 }
 
-/* selected (first tap — highlight blue) */
-.is-selected {
-    background-color: var(--selected) !important;
-    border-color: var(--selected-border) !important;
-    color: #003087 !important;
+/* selected (first tap — highlight blue, ต้องชนะ [readonly] rule) */
+input[type="number"].is-selected,
+input[type="number"][readonly].is-selected {
+    background-color: #1d4ed8 !important;
+    border-color: #1e40af !important;
+    color: #ffffff !important;
     font-weight: 700;
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.4) !important;
+    animation: pulse-select 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-select {
+    0%   { box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.4); }
+    50%  { box-shadow: 0 0 0 7px rgba(29, 78, 216, 0.12); }
+    100% { box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.4); }
 }
 
 /* ── Measured input inside ceq-row ── */

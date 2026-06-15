@@ -1,25 +1,130 @@
+/* ============================================================
+   C-Bank Smart Optimizer — EGAT Theme
+   Primary:  EGAT Blue  #003087
+   Accent:   EGAT Gold  #F5A800
+   ============================================================ */
+
 :root {
-    --bg-color: #f4f7f6;
-    --panel-bg: #ffffff;
-    --border-color: #cbd5e1;
-    --primary: #0f172a;
-    --success: #dcfce7;
-    --success-text: #166534;
-    --danger: #fee2e2;
-    --danger-text: #991b1b;
-    --highlight: #fef08a;
-    --selected: #bae6fd;
+    /* EGAT Brand */
+    --egat-blue:       #003087;
+    --egat-blue-mid:   #0050b3;
+    --egat-blue-light: #e6eef8;
+    --egat-gold:       #F5A800;
+    --egat-gold-light: #fff8e6;
+
+    /* Neutral */
+    --bg-color:     #f0f4f8;
+    --panel-bg:     #ffffff;
+    --border-color: #c8d6e8;
+    --text-main:    #0a1f44;
+    --text-muted:   #5a7291;
+
+    /* Semantic */
+    --success:       #d4edda;
+    --success-text:  #155724;
+    --success-border:#5cb85c;
+    --danger:        #f8d7da;
+    --danger-text:   #721c24;
+    --danger-border: #e57373;
+    --highlight:     #fff8e6;
+    --selected:      #cce5ff;
+    --selected-border:#0050b3;
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 2px 6px rgba(0,48,135,0.08);
+    --shadow-md: 0 4px 14px rgba(0,48,135,0.12);
 }
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; }
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
-    color: var(--primary);
+    color: var(--text-main);
     margin: 0;
     padding: 0;
 }
-h1, h2 { text-align: center; margin-bottom: 5px; }
-.subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9em; }
+h1, h2 {
+    text-align: center;
+    margin-top: 0;         /* ลบ margin บน default ของ browser */
+    margin-bottom: 16px;   /* ระยะห่างใต้หัวข้อก่อนถึง content */
+}
 
+/* ── Hero Header ── */
+.hero-header {
+    text-align: center;
+    padding: 32px 24px;
+    background: linear-gradient(135deg, #001f5e 0%, #003087 55%, #0050b3 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(0,30,100,0.25);
+    margin-bottom: 24px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* subtle diagonal stripe for industrial feel */
+.hero-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        -55deg,
+        transparent,
+        transparent 28px,
+        rgba(245,168,0,0.06) 28px,
+        rgba(245,168,0,0.06) 30px
+    );
+    pointer-events: none;
+}
+
+.hero-badge {
+    display: inline-block;
+    font-size: 2.3rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #ffffff;
+    position: relative;
+
+    /* มิติเบาๆ: เงาดำลึก 2px + glow ฟ้าอ่อนรอบตัวอักษร */
+    text-shadow:
+        1px 2px 0px rgba(0, 0, 0, 0.4),
+        2px 4px 6px rgba(0, 10, 60, 0.5),
+        0px 0px 20px rgba(180, 210, 255, 0.15);
+}
+
+/* Gold underline accent */
+.hero-badge::after {
+    content: '';
+    display: block;
+    margin: 8px auto 0;
+    width: 70px;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--egat-gold), transparent);
+    box-shadow: 0 0 6px rgba(245, 168, 0, 0.5);
+}
+
+.hero-subtitle {
+    margin-top: 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #d6e4ff;
+    position: relative;
+}
+
+.hero-desc {
+    margin-top: 6px;
+    color: var(--egat-gold);
+    font-size: 0.88rem;
+    opacity: 0.92;
+    letter-spacing: 0.5px;
+    position: relative;
+}
+
+/* ── Layout ── */
 .container {
     display: flex;
     flex-wrap: wrap;
@@ -27,360 +132,466 @@ h1, h2 { text-align: center; margin-bottom: 5px; }
     justify-content: center;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 20px 20px 20px; /* ✅ เพิ่มความบาลานซ์เว้นระยะรอบข้างคอนเทนเนอร์ */
+    padding: 0 20px 20px;
 }
 
+/* ── Controls ── */
+.controls {
+    text-align: center;
+    margin: 0 auto 4px;
+    max-width: 1400px;
+    padding: 0 20px;
+}
+.controls-hint {
+    font-size: 0.88em;
+    margin-top: 10px;
+    color: var(--text-muted);
+}
+
+/* ── Buttons ── */
+button {
+    padding: 10px 22px;
+    font-size: 1em;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+button:active { transform: scale(0.97); }
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--egat-gold) 0%, #e09500 100%);
+    color: #0a1f44;
+    box-shadow: 0 3px 8px rgba(245,168,0,0.35);
+    border: 1px solid #c98000;
+}
+.btn-primary:hover { background: linear-gradient(135deg, #ffc020 0%, #cc8800 100%); }
+
+.btn-reset {
+    background: var(--egat-blue-light);
+    color: var(--egat-blue);
+    margin-left: 10px;
+    border: 1px solid #aec4df;
+}
+.btn-reset:hover { background: #c8d8ee; }
+
+.btn-add {
+    background: linear-gradient(135deg, var(--egat-blue-mid) 0%, var(--egat-blue) 100%);
+    color: white;
+    margin-top: 10px;
+    font-size: 0.9em;
+    padding: 7px 14px;
+    box-shadow: var(--shadow-sm);
+}
+.btn-add:hover { background: linear-gradient(135deg, #0060cc 0%, #002070 100%); }
+
+.btn-container { text-align: center; }
+
+/* ── Panel ── */
 .panel {
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
     flex: 1;
     min-width: 350px;
 }
 
+/* blue top-border accent on group panels */
+#panel-g1,
+#panel-g2 {
+    border-top: 3px solid var(--egat-blue);
+}
+
+#panel-g1 h2,
+#panel-g2 h2 {
+    color: var(--egat-blue);
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+/* ── Grid inside groups ── */
 .grid-wrapper {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     justify-content: space-between;
 }
 .phase-col { flex: 1; }
-.phase-title { text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
 
+.phase-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: white;
+    background: var(--egat-blue);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    padding: 5px 0;
+    letter-spacing: 0.5px;
+}
+
+/* ── Cell rows (capacitor inputs) ── */
 .cell-row {
     display: flex;
     align-items: center;
-    margin-bottom: 4px;
+    gap: 8px;          /* ← ระยะห่างระหว่าง label กับ input */
+    margin-bottom: 5px;
 }
+
 .cell-label {
-    width: 40px;
-    font-size: 0.85em;
-    color: #475569;
+    /* กว้างคงที่ ทำให้ A1/1 ถึง A1/10 เรียงตรงกัน */
+    min-width: 48px;
+    width: 48px;
+    font-size: 0.82em;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: right;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
+
+/* ── Input (capacitor cells) ── */
 input[type="number"] {
     width: 100%;
-    padding: 6px;
+    padding: 5px 7px;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 0.95em;
+    border-radius: var(--radius-sm);
+    font-size: 0.9em;
     text-align: right;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.18s;
+    background: #f7faff;
+    color: var(--text-main);
 }
-input[type="number"]:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-
-/* เพิ่มสีเขียวอ่อนเพื่อบอกว่าช่องนี้กำลังเปิดให้พิมพ์ได้ */
-input[type="number"]:not([readonly]) {
-    background-color: #f0fdf4 !important;
-    border-color: #22c55e !important;
-    color: #166534;
+input[type="number"]:focus {
+    outline: none;
+    border-color: var(--egat-blue-mid);
+    box-shadow: 0 0 0 2px rgba(0,80,179,0.18);
 }
 
-.is-selected { background-color: var(--selected) !important; border-color: #0284c7 !important; color: #0369a1; font-weight: bold; }
-
-.result-box {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 6px;
-    background: #f8fafc;
-    border: 1px solid var(--border-color);
+/* read-only (default state for capacitor cells) */
+input[type="number"][readonly] {
+    background: #f7faff !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+    cursor: pointer;
 }
-.result-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
-.delta-box {
-    padding: 10px;
-    border-radius: 6px;
+
+/* selected (first tap — highlight blue) */
+.is-selected {
+    background-color: var(--selected) !important;
+    border-color: var(--selected-border) !important;
+    color: #003087 !important;
+    font-weight: 700;
+}
+
+/* ── Measured input inside ceq-row ── */
+.ceq-row input[type="number"] {
+    background: #f0f4f8 !important;
+    border-color: #aec4df !important;
+    color: var(--text-main) !important;
+    font-size: 0.88em;
+    width: 100%;
     text-align: center;
-    font-weight: bold;
-    font-size: 1.1em;
-    border: 1px solid;
 }
-.pass { background-color: var(--success); color: var(--success-text); border-color: #86efac; }
-.fail { background-color: var(--danger); color: var(--danger-text); border-color: #fca5a5; }
+.ceq-row input[type="number"]:focus {
+    background: #ffffff !important;
+    border-color: var(--egat-blue-mid) !important;
+    box-shadow: 0 0 0 2px rgba(0,80,179,0.18);
+}
 
+/* ── Spare panel inputs ── */
+.spare-panel input[type="number"] {
+    background: var(--egat-gold-light) !important;
+    border-color: #e0c060 !important;
+}
+
+/* ── Result box (Ceq table) ── */
+.result-box {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--egat-blue-light);
+    border: 1px solid #aec4df;
+}
+
+/* ── Ceq table header/rows ── */
+.ceq-header,
+.ceq-row {
+    display: grid;
+    grid-template-columns:
+        0.6fr  /* Phase */
+        1.2fr  /* Calculated */
+        1.4fr  /* Measured — กว้างที่สุดเพื่อรองรับ input */
+        0.8fr; /* Error (%) */
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+/* จัด text-align ของแต่ละคอลัมน์ให้ตรงกันทั้ง header และ row */
+.ceq-header span:nth-child(1),
+.ceq-row   span:nth-child(1) { text-align: center; }
+
+.ceq-header span:nth-child(2),
+.ceq-row   span:nth-child(2) { text-align: center; }
+
+.ceq-header span:nth-child(3) { text-align: center; }
+
+.ceq-header span:nth-child(4),
+.ceq-row   span:nth-child(4) { text-align: right; }
+
+.ceq-header {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--egat-blue);
+    border-bottom: 2px solid var(--egat-blue);
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.ceq-row span {
+    font-size: 0.88rem;
+}
+
+/* Error value */
+.err-val {
+    text-align: right;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.text-pass { color: var(--success-text); }
+.text-fail { color: var(--danger-text); }
+
+/* ── Delta boxes ── */
 .delta-container {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 10px;
-}
-.pending {
-    background-color: #f8fafc;
-    color: #475569;
-    border-color: #cbd5e1;
+    margin-top: 12px;
 }
 
-.controls { 
-    text-align: center; 
-    margin: 20px auto; 
-    max-width: 1400px;
-    padding: 0 20px; /* ✅ เพิ่มระยะเว้นด้านข้างซ้าย-ขวา */
-}
-
-.controls-hint { font-size: 0.9em; margin-top: 10px; color: #64748b; }
-button {
-    padding: 10px 20px;
+.delta-box {
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-weight: 700;
     font-size: 1em;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.2s;
+    border: 1px solid;
+    letter-spacing: 0.2px;
+}
+.pass    { background: var(--success); color: var(--success-text); border-color: var(--success-border); }
+.fail    { background: var(--danger);  color: var(--danger-text);  border-color: var(--danger-border); }
+.pending { background: #f7faff; color: var(--text-muted); border-color: var(--border-color); }
+
+/* ── CT Current panel ── */
+.current-panel {
+    /* ใช้ flex-basis 100% เพื่อให้อยู่แถวเดียวกันเต็มแถว
+       แต่ใช้ border-radius และ padding เดียวกับ .panel */
+    flex-basis: 100%;
+    flex-shrink: 0;
+    text-align: center;
+    background: white;
+    border: 1px solid var(--border-color);   /* เส้นขอบเดียวกับ panel ปกติ */
+    border-top: 3px solid var(--egat-gold);  /* accent บนสีทอง */
+    border-radius: var(--radius-md);          /* radius เดียวกับ panel */
+    box-shadow: var(--shadow-sm);             /* เงาเดียวกับ panel */
+    margin-bottom: 0;      /* ใช้ gap ของ container แทน */
+    padding: 28px 22px 22px;
 }
 
-.btn-primary { 
-    background-color: #10b981; /* เปลี่ยนเป็นสีเขียว */
-    color: white; 
-    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3); /* เปลี่ยนสีเงาให้เข้ากับสีเขียว */
-}
-.btn-primary:hover { 
-    background-color: #059669; /* สีเขียวเข้มขึ้นเวลาเอาเมาส์ชี้ */
+.current-title {
+    color: var(--egat-blue);
+    margin-top: 0;
+    margin-bottom: 20px;   /* ระยะห่างระหว่างหัวข้อกับ card ด้านล่าง */
+    font-size: 1.15em;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
-.btn-reset { background-color: #e2e8f0; color: #334155; margin-left: 10px; }
-.btn-reset:hover { background-color: #cbd5e1; }
-.btn-container { text-align: center; }
-.btn-add { background-color: #10b981; color: white; margin-top: 10px; font-size: 0.9em; padding: 6px 12px; }
-.btn-add:hover { background-color: #059669; }
+.current-section {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
 
-.log-panel {
-    margin-top: 20px;
-    background: #1e293b;
-    color: #f8fafc;
-    padding: 15px;
-    border-radius: 6px;
-    font-family: monospace;
-    min-height: 80px;
-    max-height: 250px;
-    overflow-y: auto;
-    white-space: pre-line;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+.current-card {
+    min-width: 260px;
+    padding: 18px 22px;
+    border-radius: var(--radius-lg);
+    background: var(--egat-blue-light);
+    border: 2px solid var(--border-color);
+    transition: border-color 0.3s, background 0.3s;
+}
+
+.current-label {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--egat-blue);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.current-value {
+    font-size: 2.4em;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 6px 0;
+    letter-spacing: -0.5px;
+}
+
+.current-card .current-value { font-size: 2rem; }
+
+.current-desc {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-top: 12px;
+}
+
+.alarm-toast {
+    display: inline-block;
+    margin-top: 10px;         /* เว้นระยะห่างจากบรรทัดข้อความด้านบน */
+    color: var(--danger-text);
+    font-weight: 700;
+    background: var(--danger);
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--danger-border);
+}
+
+/* ── Spare panel ── */
+.spare-panel {
+    flex: 0.45;
+    min-width: 320px;
+    border-top: 3px solid var(--egat-blue);  /* accent เดียวกับ Group panels */
+}
+.spare-panel h2 {
+    color: var(--egat-blue);
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
 }
 
 #col-Spares {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 5px 15px;
+    gap: 5px 16px;
 }
-.spare-panel input[type="number"] { background-color: var(--highlight); }
-.spare-panel { flex: 0.4; min-width: 350px; }
 
-.current-panel {
-    width: 100%; 
-    text-align: center; 
-    background: #ffffff; 
-    border: 2px solid #dae1ea; 
-    margin-bottom: 20px;
-    padding: 20px;
+/* ── Log panel ── */
+.log-panel {
+    margin-top: 18px;
+    background: #0a1f44;
+    color: #e2ecff;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.85em;
+    min-height: 80px;
+    max-height: 250px;
+    overflow-y: auto;
+    white-space: pre-line;
+    border: 1px solid #1a3060;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+    line-height: 1.6;
 }
-.current-title { color: #0369a1; margin-top: 0; font-size: 1.2em; }
-.current-value { font-size: 2.8em; font-weight: bold; color: #0f172a; margin: 10px 0; }
-.current-desc { font-size: 0.95em; color: #64748b; line-height: 1.6; }
-.alarm-toast { color: #dc2626; font-weight: bold; background: #fee2e2; padding: 2px 8px; border-radius: 4px; }
 
+/* ── Edit Modal ── */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,30,80,0.5);
+    justify-content: center;
+    align-items: center;
+}
+.modal.show { display: flex; }
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 360px;
+    padding: 24px 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 36px rgba(0,30,100,0.28);
+    border-top: 4px solid var(--egat-blue);
+}
+.modal-content h3 {
+    margin-top: 0;
+    text-align: center;
+    color: var(--egat-blue);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-input {
+    width: 100%;
+    font-size: 22px;
+    padding: 12px;
+    text-align: center;
+    margin: 14px 0;
+    border: 2px solid var(--egat-blue-mid);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+}
+.modal-input:focus {
+    outline: none;
+    border-color: var(--egat-gold);
+    box-shadow: 0 0 0 3px rgba(245,168,0,0.2);
+}
+
+.modal-buttons { display: flex; gap: 10px; }
+
+.btn-cancel {
+    flex: 1;
+    background: var(--egat-blue-light);
+    color: var(--egat-blue);
+    border: 1px solid #aec4df;
+    font-weight: 700;
+}
+.btn-cancel:hover { background: #c8d8ee; }
+
+.btn-save {
+    flex: 1;
+    background: linear-gradient(135deg, var(--egat-blue-mid), var(--egat-blue));
+    color: white;
+    font-weight: 700;
+}
+.btn-save:hover { background: linear-gradient(135deg, #0060cc, #002070); }
+
+/* ── Footer ── */
 .site-footer {
     width: 100%;
     text-align: center;
-    margin-top: 45px;
-    padding: 25px 0 10px 0;
-    border-top: 1px solid var(--border-color);
-    color: #64748b;
+    margin-top: 40px;
+    padding: 22px 0 12px;
+    border-top: 2px solid var(--egat-blue-light);
+    color: var(--text-muted);
     font-size: 0.85em;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 .footer-logo {
-    max-height: 45px;
+    max-height: 42px;
     margin-bottom: 8px;
     opacity: 0.85;
 }
 .footer-team {
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 1.05em;
+    font-weight: 700;
+    color: var(--egat-blue);
+    font-size: 1em;
     margin-bottom: 2px;
 }
-.footer-copyright { margin-top: 6px; font-size: 0.9em; color: #94a3b8; }
-/* ===== Edit Modal ===== */
-
-.modal{
-    display:none;
-    position:fixed;
-    z-index:9999;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.45);
-
-    justify-content:center;
-    align-items:center;
-}
-
-.modal.show{
-    display:flex;
-}
-
-.modal-content{
-    background:white;
-    width:90%;
-    max-width:380px;
-
-    padding:20px;
-    border-radius:12px;
-
-    box-shadow:0 10px 30px rgba(0,0,0,0.25);
-}
-
-.modal-content h3{
-    margin-top:0;
-    text-align:center;
-}
-
-.modal-input{
-    width:100%;
-    box-sizing:border-box;
-
-    font-size:22px;
-    padding:12px;
-    text-align:center;
-
-    margin:15px 0;
-}
-
-.modal-buttons{
-    display:flex;
-    gap:10px;
-}
-
-.btn-cancel{
-    flex:1;
-    background:#e2e8f0;
-    color:#334155;
-}
-
-.btn-save{
-    flex:1;
-    background:#2563eb;
-    color:white;
-}
-
-.hero-header {
-    text-align: center;
-    padding: 30px 20px; /* เพิ่มพื้นที่แนวตั้งให้ดูโปร่งและมีมิติ */
-    background: linear-gradient(
-        135deg,
-        #1d4ed8,
-        #2563eb,
-        #3b82f6
-    );
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* เพิ่มเงาด้านล่างแผง Header */
-    margin-bottom: 25px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.hero-badge {
-    display: block;
-    font-size: 2.3rem;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    margin: 0;
-    padding: 0;
-    background: none; /* ✅ เอาพื้นหลังก้อนเดิมออก */
-    box-shadow: none; /* ✅ เอาเงาเดิมออก */
-    border-radius: 0;  /* ✅ เอาความโค้งมนออก */
-}
-
-.hero-subtitle {
-    margin-top: 10px;
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: #f1f5f9; /* ปรับสีตัวหนังสือให้อ่านง่ายและเด่นชัดขึ้นบนพื้นหลังเข้ม */
-}
-
-.hero-desc {
+.footer-copyright {
     margin-top: 6px;
-    color: #bfdbfe; /* ใช้สีฟ้าอ่อนเพื่อให้ดูนุ่มนวลและแยกเลเยอร์สายตาได้ดี */
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-.ceq-header,
-.ceq-row{
-    display:grid;
-    grid-template-columns:
-        50px   /* Phase */
-        1fr    /* Calculated */
-        1fr    /* Measured */
-        70px;  /* Error (%) */
-    gap:10px;
-    align-items:center;
-    margin-bottom:6px;
-}
-
-/* เพิ่มคลาสสำหรับจัดสไตล์ตัวเลข Error */
-.err-val {
-    text-align: right;
-    font-size: 0.9rem;
-    font-weight: bold;
-}
-.text-pass { color: #15803d; } /* สีเขียว (ต่ำกว่า 5%) */
-.text-fail { color: #dc2626; } /* สีแดง (เกิน 5%) */
-
-.ceq-header{
-    font-weight:bold;
-    border-bottom:2px solid #cbd5e1;
-    padding-bottom:6px;
-    margin-bottom:10px;
-}
-
-.ceq-row span{
-    font-size:0.9rem;
-}
-
-.ceq-row input{
-    width:100%;
-}
-
-.current-section{
-    display:flex;
-    gap:20px;
-    justify-content:center;
-    flex-wrap:wrap;
-}
-
-.current-card{
-    min-width:280px;
-
-    padding:15px;
-
-    border-radius:12px;
-
-    background:white;
-
-    border:2px solid #cbd5e1;
-}
-
-.current-label{
-    font-weight:bold;
-    margin-bottom:8px;
-}
-
-.current-card .current-value{
-    font-size:2rem;
-}
-
-/* ปรับแต่งช่อง Measured ให้เป็นสีเทาเวลารอรับค่า */
-.ceq-row input[type="number"]:not([readonly]) {
-    background-color: #f1f5f9 !important; /* พื้นหลังสีเทาอ่อน (Pending) */
-    border-color: #cbd5e1 !important;     /* เส้นขอบสีเทา */
-    color: #0f172a !important;            /* สีตัวเลข */
-}
-
-/* เวลาคลิกเข้าไปพิมพ์ (Focus) ให้พื้นหลังสว่างขึ้นเพื่อบอกว่ากำลังพิมพ์อยู่ */
-.ceq-row input[type="number"]:not([readonly]):focus {
-    background-color: #ffffff !important; /* เปลี่ยนเป็นสีขาว */
-    border-color: #3b82f6 !important;     /* เส้นขอบสีฟ้า */
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    font-size: 0.88em;
+    color: #94a3b8;
 }
